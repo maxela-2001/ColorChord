@@ -3,6 +3,7 @@ from enum import Enum
 
 
 class cNote(Enum):
+    E = 0
     A = 1
     D = 2
     G = 3
@@ -14,7 +15,6 @@ class cNote(Enum):
     Db = 9
     Fsharp = 10
     B = 11
-    E = 12
 
     @staticmethod
     def get_cNote_by_name(name: str):
@@ -50,8 +50,8 @@ class _Note:
 
     def __init__(self, note: cNote):
         self.note = note
-        if not 1 <= self.note.value <= 12:
-            raise ValueError("note index must be between 1 and 12")
+        if self.note.value != self.note.value % 12:
+            raise ValueError("note index must be between 0 and 11")
         self.index = self.note.value
     '''
     "A" -> _Note(cNote.A)
@@ -69,7 +69,7 @@ class _Note:
 
     @property
     def angle(self):
-        return self.index * 30 - 15
+        return (self.index * 30 - 15) % 360
 
     def angle_to(self, other):
         return (self-other)*30
@@ -139,22 +139,12 @@ class Chord:
 
     def get_theta(self) -> list:
         # 计算和弦内音符对应向量的平均方向
-        thetas = []
-        intervals = []
-        for i in range(len(self.notes)):
-            intervals.append(self.notes[i]-self.notes[(i+1) % len(self.notes)])
-        max_interval = max(intervals)
-        for i in range(len(intervals)):
-            if (intervals[i] == max_interval):
-
-                n_begin = self.notes[(i+1) % len(self.notes)]
-                theta = 0
-                for n in self.notes:
-                    theta += 30*(n_begin-n)
-                thetas.append((theta/len(self.notes)+n_begin.angle) % 360)
-        if len(thetas) == 1:
-            self.temp_theta = thetas[0]
-        return thetas
+        z = 0.j
+        for note in self.notes:
+            z += cmath.rect(1, math.radians(note.angle))
+        self.temp_theta = math.degrees(cmath.polar(z)[1])
+        return [note.angle % 360 for note in self.notes]
+        
 
     def pure_fifth_span(self) -> int:
         '''
