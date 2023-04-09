@@ -1,4 +1,4 @@
-import math
+import math, cmath
 from enum import Enum
 
 
@@ -83,7 +83,7 @@ class _Note:
         if other.index == self.index:
             return 0
         interval = other.index - self.index
-        return interval if interval > 0 else interval + 12
+        return interval % 12
 
     def __gt__(self, other):
         return self.index > other.index
@@ -96,14 +96,7 @@ class _Note:
     # 返回逆时针方向第n个音符_Note
 
     def next(self, n=1):
-        new_ind = self.index + n
-        if n >= 0:
-            if new_ind > 12:
-                new_ind -= 12
-        else:
-            if new_ind <= 0:
-                new_ind += 12
-
+        new_ind = (self.index + n) % 12
         return _Note(cNote(new_ind))
 
 
